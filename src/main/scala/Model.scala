@@ -2,9 +2,9 @@ import java.util.UUID
 import org.joda.time.DateTime
 import akka.actor.Actor
 
-case class ListWithOffset[T](t: AnyRef, offset: Int, limit: Int)
-case class Blogs(slice: Iterable[Blog])
-case class AddBlog(blog: Blog)
+case class ListWithOffset(t: Any, offset: Int, limit: Int)
+case class EntityList(slice: Iterable[Blog])
+case class AddEntity[T](blog: T)
 
 class Model extends Actor {
     // Dummy data for illustration purposes, in ascending order by date
@@ -19,8 +19,8 @@ class Model extends Actor {
         case uuid: String =>
             sender ! data.find(_.id == uuid.toString)
         case ListWithOffset(Blog, offset, limit) =>
-            sender ! Blogs(data.drop(offset).take(limit))
-        case AddBlog(blog) =>
+            sender ! EntityList(data.drop(offset).take(limit))
+        case AddEntity(blog: Blog) =>
             context.become(process(blog +: data))
             sender ! blog
     }

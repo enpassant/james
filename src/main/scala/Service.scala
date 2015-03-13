@@ -3,8 +3,11 @@ import akka.pattern.ask
 import akka.util.Timeout
 import scala.concurrent.duration._
 import spray.routing.{ HttpServiceActor, ValidationRejection }
+import spray.httpx.marshalling._
+import spray.httpx.unmarshalling._
 import org.joda.time.DateTime
 import java.util.UUID
+import scala.reflect.ClassTag
 
 class Service(model: ActorRef) extends HttpServiceActor with BlogFormats with BlogsDirectives {
     import context.dispatcher
@@ -23,32 +26,39 @@ class Service(model: ActorRef) extends HttpServiceActor with BlogFormats with Bl
 
     def handleBlogs = (pathEnd compose blogLinks) {
         headComplete ~
-        get {
-            parameters('offset ? 0, 'limit ? 3) { (offset: Int, limit: Int) =>
-                completeJson {
-                    (model ? ListWithOffset(Blog, offset, limit)) map {
-                        case Blogs(slice) => slice.toSeq
-                    }
+        getList(Blog)
+    }
+
+    def handleBlog(blogId: String) = (blogLinks & commentLinks) {
+        headComplete ~
+        putEntity[Blog](blogId, _.copy(id=blogId)) ~
+        getEntity[Blog](blogId)
+    }
+
+    def getList(t: Any) = get {
+        parameters('offset ? 0, 'limit ? 3) { (offset: Int, limit: Int) =>
+            completeJson {
+                (model ? ListWithOffset(t, offset, limit)) map {
+                    case EntityList(slice) => slice.toSeq
                 }
             }
         }
     }
 
-    def handleBlog(blogId: String) = (blogLinks & commentLinks) {
-        headComplete ~
-        put {
-            entity(as[Blog]) { blog => ctx =>
-                (model ? AddBlog(blog.copy(id=blogId))) map {
-                    case blog: Blog => ctx.complete(blog)
-                }
+    def getEntity[T: ClassTag](id: String)(implicit m: ToResponseMarshaller[T]) = get {
+        respondWithJson { ctx =>
+            (model ? id) map {
+                case Some(entity: T) => ctx.complete(entity)
+                case None => ctx.reject()
             }
-        } ~
-        get {
-            respondWithJson {
-                ctx => (model ? blogId) map {
-                    case Some(blog: Blog) => ctx.complete(blog)
-                    case None => ctx.reject()
-                }
+        }
+    }
+
+    def putEntity[T : ClassTag](id: String, modify: T => T)
+        (implicit u: FromRequestUnmarshaller[T], m: ToResponseMarshaller[T]) = put {
+        entity(as[T]) { entity => ctx =>
+            (model ? AddEntity(modify(entity))) map {
+                case entity: T => ctx.complete(entity)
             }
         }
     }
