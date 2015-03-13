@@ -19,9 +19,14 @@ libraryDependencies ++= Seq(
 //  "io.spray"                % "spray-can"             % sprayVersion,
   "io.spray"               %% "spray-client"          % sprayVersion,
   "io.spray"               %% "spray-routing"         % sprayVersion,
-//  "io.spray"               %% "spray-json"            % "1.2.5",
+  "io.spray"               %% "spray-json"            % sprayVersion,
 //  "org.specs2"             %% "specs2"                % "2.2.2"        % "test",
 //  "com.typesafe.akka"      %% "akka-testkit"          % akkaVersion    % "test",
+  "com.github.nscala-time" %% "nscala-time"           % "1.8.0",
+  "com.github.ancane"      %% "haldr"                 % "0.1",
+//  "joda-time"              %% "joda-time"             % "2.7",
+  "org.json4s"             %% "json4s-jackson"        % "3.2.10",
+  "org.json4s"             %% "json4s-ext"            % "3.2.10",
   "io.spray"               %% "spray-testkit"         % sprayVersion   % "test"
 )
 
