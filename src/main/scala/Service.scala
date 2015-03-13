@@ -12,7 +12,7 @@ class Service(val model: ActorRef) extends HttpServiceActor with BlogFormats wit
         } ~
         pathPrefix("blogs") {
             handleBlogs ~
-            path(Segment)(handleBlog)
+            pathPrefix(Segment)(handleBlog)
         }
     }
 
@@ -21,11 +21,13 @@ class Service(val model: ActorRef) extends HttpServiceActor with BlogFormats wit
         getList[Blog](Blog)
     }
 
-    def handleBlog(blogId: String) = (blogLinks & commentLinks) {
-        headComplete ~
-        getEntity[Blog](blogId) ~
-        putEntity[Blog](blogId, _.copy(id=blogId)) ~
-        deleteEntity[Blog](blogId)
+    def handleBlog(blogId: String) = pathEnd {
+        (blogLinks & commentLinks) {
+            headComplete ~
+            getEntity[Blog](blogId) ~
+            putEntity[Blog](blogId, _.copy(id = blogId)) ~
+            deleteEntity[Blog](blogId)
+        }
     }
 }
 // vim: set ts=4 sw=4 et:
