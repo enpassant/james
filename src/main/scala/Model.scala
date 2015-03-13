@@ -5,6 +5,7 @@ import akka.actor.Actor
 case class ListWithOffset(t: Any, offset: Int, limit: Int)
 case class EntityList(slice: Iterable[Blog])
 case class AddEntity[T](blog: T)
+case class DeleteEntity(id: String)
 
 class Model extends Actor {
     // Dummy data for illustration purposes, in ascending order by date
@@ -23,6 +24,10 @@ class Model extends Actor {
         case AddEntity(blog: Blog) =>
             context.become(process(blog +: data))
             sender ! blog
+        case DeleteEntity(id: String) =>
+            val entity = data.find(_.id == id)
+            context.become(process(data.filterNot(_.id == id)))
+            sender ! entity
     }
 }
 // vim: set ts=4 sw=4 et:

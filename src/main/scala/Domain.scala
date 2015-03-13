@@ -8,7 +8,7 @@ import spray.http.{ ContentType, ContentTypeRange, HttpEntity, MediaType, MediaT
 
 
 case class Blog(id: String = null, accountId: String,
-    date: DateTime = DateTime.now, title: String, note: String) 
+    date: DateTime = DateTime.now, title: String, note: String)
 case class Comment(id: String, accountId: String, date: DateTime, note: String)
 
 trait BlogFormats {

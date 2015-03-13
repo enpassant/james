@@ -31,8 +31,9 @@ class Service(model: ActorRef) extends HttpServiceActor with BlogFormats with Bl
 
     def handleBlog(blogId: String) = (blogLinks & commentLinks) {
         headComplete ~
+        getEntity[Blog](blogId) ~
         putEntity[Blog](blogId, _.copy(id=blogId)) ~
-        getEntity[Blog](blogId)
+        deleteEntity[Blog](blogId)
     }
 
     def getList(t: Any) = get {
@@ -59,6 +60,15 @@ class Service(model: ActorRef) extends HttpServiceActor with BlogFormats with Bl
         entity(as[T]) { entity => ctx =>
             (model ? AddEntity(modify(entity))) map {
                 case entity: T => ctx.complete(entity)
+            }
+        }
+    }
+
+    def deleteEntity[T: ClassTag](id: String)(implicit m: ToResponseMarshaller[T]) = delete {
+        respondWithJson { ctx =>
+            (model ? DeleteEntity(id)) map {
+                case Some(entity: T) => ctx.complete(entity)
+                case None => ctx.reject()
             }
         }
     }
