@@ -3,7 +3,7 @@ import org.joda.time.DateTime
 import akka.actor.Actor
 
 case class ListWithOffset(t: Any, offset: Int, limit: Int)
-case class EntityList(slice: Iterable[Blog])
+case class EntityList[T](slice: Iterable[T])
 case class AddEntity[T](blog: T)
 case class DeleteEntity(id: String)
 
