@@ -7,12 +7,12 @@ case class EntityList[T](slice: Iterable[T])
 case class AddEntity[T](blog: T)
 case class DeleteEntity(id: String)
 
-class Model extends Actor {
+class Model(val mode:String) extends Actor {
     // Dummy data for illustration purposes, in ascending order by date
     val data = (for {
         x <- 1 to 100
     } yield Blog(UUID.randomUUID.toString, "jim", new DateTime().minusDays(x),
-        s"Title ${x}", s"Description ${x}")).reverse
+        s"Title ${x}", s"Description ${x}. Mode: ${mode}")).reverse
 
     def receive: Receive = process(data)
 

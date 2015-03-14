@@ -1,19 +1,33 @@
 import akka.actor.ActorRef
-import spray.routing.{ HttpServiceActor, ValidationRejection }
+import spray.routing.{ HttpServiceActor, Route, ValidationRejection }
 import org.joda.time.DateTime
 import java.util.UUID
 
-class Service(val model: ActorRef) extends HttpServiceActor with BlogFormats with BlogsDirectives {
+class Service(val mode: String, val model: ActorRef) extends HttpServiceActor
+    with BlogFormats with BlogsDirectives {
     import context.dispatcher
 
     def receive = runRoute {
-        path("") {
-            blogLinks { headComplete }
-        } ~
-        pathPrefix("blogs") {
-            handleBlogs ~
-            pathPrefix(Segment)(handleBlog)
+        log {
+            path("") {
+                blogLinks { headComplete }
+            } ~
+            pathPrefix("blogs") {
+                handleBlogs ~
+                pathPrefix(Segment)(handleBlog)
+            }
         }
+    }
+
+    def log(route: Route): Route = {
+        if (mode == "dev") {
+            ctx =>
+                val start = System.currentTimeMillis
+                println(ctx)
+                route(ctx)
+                val runningTime = System.currentTimeMillis - start
+                println(s"Running time is ${runningTime} ms")
+        } else route
     }
 
     def handleBlogs = (pathEnd compose blogLinks) {

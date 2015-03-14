@@ -20,12 +20,12 @@ object Main extends App {
     // parser.parse returns Option[C]
     parser.parse(args, Config()) match {
         case Some(config) =>
-            val model = actorSystem.actorOf(Props(new Model))
+            val model = actorSystem.actorOf(Props(new Model(config.mode)))
             class BaseActor extends Actor {
                 def receive: Receive = {
                     case "start" =>
                         println(config)
-                        val service = actorSystem.actorOf(Props(new Service(model)))
+                        val service = actorSystem.actorOf(Props(new Service(config.mode, model)))
                         IO(Http) ! Http.Bind(service, interface = config.host, port = config.port)
                 }
             }
