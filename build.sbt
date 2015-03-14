@@ -14,7 +14,10 @@ Revolver.settings
 
 //resolvers += "Sonatype snapshots" at "http://oss.sonatype.org/content/repositories/snapshots/"
 
+resolvers += Resolver.sonatypeRepo("public")
+
 libraryDependencies ++= Seq(
+  "com.github.scopt"       %% "scopt"                 % "3.3.0",
   "com.typesafe.akka"      %% "akka-actor"            % akkaVersion,
 //  "com.typesafe.akka"      %% "akka-http-experimental" % "1.0-M4",
 //  "com.typesafe.akka"      %% "akka-slf4j"            % akkaVersion,
