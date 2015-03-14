@@ -10,6 +10,8 @@ val sprayVersion = "1.3.1"
 
 val akkaVersion = "2.3.9"
 
+Revolver.settings
+
 //resolvers += "Sonatype snapshots" at "http://oss.sonatype.org/content/repositories/snapshots/"
 
 libraryDependencies ++= Seq(
