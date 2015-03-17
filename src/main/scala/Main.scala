@@ -2,20 +2,25 @@ import akka.actor.{ Actor, ActorRef, ActorSystem, Props }
 import spray.can.Http
 import akka.io.IO
 
+case class Config(host: String = "localhost", port: Int = 9000,
+    serviceHost: String = "localhost", servicePort: Int = 9101, mode: String = "dev")
+
 object Main extends App {
     implicit val actorSystem = ActorSystem("james")
-
-    case class Config(host: String = "localhost", port: Int = 8080, mode: String = "dev")
 
     val parser = new scopt.OptionParser[Config]("james") {
         head("james", "1.0")
         opt[String]('h', "host") action { (x, c) =>
             c.copy(host = x) } text("host name or address. Default: localhost")
         opt[Int]('p', "port") action { (x, c) =>
-            c.copy(port = x) } text("port number. Default: 8080")
+            c.copy(port = x) } text("port number. Default: 9000")
+        opt[String]('H', "service-host") action { (x, c) =>
+            c.copy(serviceHost = x) } text("host name or address. Default: localhost")
+        opt[Int]('P', "service-port") action { (x, c) =>
+            c.copy(servicePort = x) } text("port number. Default: 9101")
         opt[String]('m', "mode") action { (x, c) =>
             c.copy(mode = x) } text("running mode. e.g.: dev, test, prod. Default: dev")
-    }
+     }
 
     // parser.parse returns Option[C]
     parser.parse(args, Config()) match {
@@ -29,6 +34,9 @@ object Main extends App {
                         IO(Http) ! Http.Bind(service, interface = config.host, port = config.port)
                 }
             }
+
+            val tickActor = actorSystem.actorOf(Props(new TickActor(config)))
+            tickActor ! Tick
 
             val myApp: ActorRef = actorSystem.actorOf(Props(new BaseActor))
             myApp ! "start"
