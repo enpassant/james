@@ -3,7 +3,7 @@ import spray.can.Http
 import akka.io.IO
 
 object Main extends App {
-    implicit val actorSystem = ActorSystem("blog")
+    implicit val actorSystem = ActorSystem("james")
 
     case class Config(host: String = "localhost", port: Int = 8080, mode: String = "dev")
 
