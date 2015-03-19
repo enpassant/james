@@ -3,7 +3,7 @@ import spray.can.Http
 import akka.io.IO
 
 case class Config(host: String = "localhost", port: Int = 9000,
-    serviceHost: String = "localhost", servicePort: Int = 9101, mode: String = "dev")
+    serviceHost: String = "localhost", servicePort: Int = 9101, mode: Option[String] = None)
 
 object Main extends App {
     implicit val actorSystem = ActorSystem("james")
@@ -19,18 +19,18 @@ object Main extends App {
         opt[Int]('P', "service-port") action { (x, c) =>
             c.copy(servicePort = x) } text("port number. Default: 9101")
         opt[String]('m', "mode") action { (x, c) =>
-            c.copy(mode = x) } text("running mode. e.g.: dev, test, prod. Default: dev")
+            c.copy(mode = Some(x)) } text("running mode. e.g.: dev, test, prod. Default: dev")
      }
 
     // parser.parse returns Option[C]
     parser.parse(args, Config()) match {
         case Some(config) =>
-            val model = actorSystem.actorOf(Props(new Model(config.mode)))
+            val model = actorSystem.actorOf(Props(new Model(config)))
             class BaseActor extends Actor {
                 def receive: Receive = {
                     case "start" =>
                         println(config)
-                        val service = actorSystem.actorOf(Props(new Service(config.mode, model)))
+                        val service = actorSystem.actorOf(Props(new Service(config, model)))
                         IO(Http) ! Http.Bind(service, interface = config.host, port = config.port)
                 }
             }

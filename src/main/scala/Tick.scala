@@ -19,7 +19,7 @@ class TickActor(val config: Config) extends Actor with ActorLogging  with Servic
 
     val serviceUri = s"http://${config.serviceHost}:${config.servicePort}/services"
     val microService = MicroService(UUID.randomUUID.toString, "blogs",
-        config.host, config.port, Some(config.mode))
+        config.host, config.port, config.mode)
 
     def receive = {
         case Tick =>

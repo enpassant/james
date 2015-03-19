@@ -3,7 +3,7 @@ import spray.routing.{ HttpServiceActor, Route, ValidationRejection }
 import org.joda.time.DateTime
 import java.util.UUID
 
-class Service(val mode: String, val model: ActorRef) extends HttpServiceActor
+class Service(val config: Config, val model: ActorRef) extends HttpServiceActor
     with BlogFormats with BlogsDirectives {
     import context.dispatcher
 
@@ -20,7 +20,7 @@ class Service(val mode: String, val model: ActorRef) extends HttpServiceActor
     }
 
     def log(route: Route): Route = {
-        if (mode == "dev") {
+        if (config.mode == Some("dev")) {
             ctx =>
                 val start = System.currentTimeMillis
                 println(ctx)
