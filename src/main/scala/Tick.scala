@@ -17,7 +17,7 @@ class TickActor(val config: Config) extends Actor with ActorLogging  with Servic
     implicit val timeout: Timeout = Timeout(15.seconds)
     import scala.concurrent.ExecutionContext.Implicits.global
 
-    val serviceUri = s"http://${config.serviceHost}:${config.servicePort}/services"
+    val serviceUri = s"http://${config.serviceHost.get}:${config.servicePort}/services"
     val microService = MicroService(UUID.randomUUID.toString, "blogs",
         config.host, config.port, config.mode)
 

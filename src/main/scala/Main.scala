@@ -3,7 +3,7 @@ import spray.can.Http
 import akka.io.IO
 
 case class Config(host: String = "localhost", port: Int = 9000,
-    serviceHost: String = "localhost", servicePort: Int = 9101, mode: Option[String] = None)
+    serviceHost: Option[String] = None, servicePort: Int = 9101, mode: Option[String] = None)
 
 object Main extends App {
     implicit val actorSystem = ActorSystem("james")
@@ -15,7 +15,7 @@ object Main extends App {
         opt[Int]('p', "port") action { (x, c) =>
             c.copy(port = x) } text("port number. Default: 9000")
         opt[String]('H', "service-host") action { (x, c) =>
-            c.copy(serviceHost = x) } text("host name or address. Default: localhost")
+            c.copy(serviceHost = Some(x)) } text("host name or address. Default: localhost")
         opt[Int]('P', "service-port") action { (x, c) =>
             c.copy(servicePort = x) } text("port number. Default: 9101")
         opt[String]('m', "mode") action { (x, c) =>
@@ -35,8 +35,10 @@ object Main extends App {
                 }
             }
 
-            val tickActor = actorSystem.actorOf(Props(new TickActor(config)))
-            tickActor ! Tick
+            if (config.serviceHost != None) {
+                val tickActor = actorSystem.actorOf(Props(new TickActor(config)))
+                tickActor ! Tick
+            }
 
             val myApp: ActorRef = actorSystem.actorOf(Props(new BaseActor))
             myApp ! "start"
