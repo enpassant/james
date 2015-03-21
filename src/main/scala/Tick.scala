@@ -26,7 +26,7 @@ class TickActor(val config: Config) extends Actor with ActorLogging  with Servic
         val response: Future[HttpResponse] =
             (IO(Http) ? Put(serviceUri + "/" + microService.uuid, microService))
                 .mapTo[HttpResponse]
-        response.map { r => log.info(r.toString) }
+        response.map { r => log.debug(r.toString) }
         schedule
     }
 
