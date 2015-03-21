@@ -25,23 +25,13 @@ object Main extends App {
     // parser.parse returns Option[C]
     parser.parse(args, Config()) match {
         case Some(config) =>
-            val model = actorSystem.actorOf(Props(new Model(config)))
-            class BaseActor extends Actor {
-                def receive: Receive = {
-                    case "start" =>
-                        println(config)
-                        val service = actorSystem.actorOf(Props(new Service(config, model)))
-                        IO(Http) ! Http.Bind(service, interface = config.host, port = config.port)
-                }
-            }
-
             if (config.serviceHost != None) {
                 val tickActor = actorSystem.actorOf(Props(new TickActor(config)))
                 tickActor ! Tick
             }
 
-            val myApp: ActorRef = actorSystem.actorOf(Props(new BaseActor))
-            myApp ! "start"
+            val model = actorSystem.actorOf(Props(new Model(config)))
+            val service = actorSystem.actorOf(Props(new Service(config, model)))
 
         case None =>
     }

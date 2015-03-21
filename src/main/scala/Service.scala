@@ -1,4 +1,11 @@
 import akka.actor.ActorRef
+import akka.io.IO
+import akka.pattern.ask
+import akka.util.Timeout
+import java.util.UUID
+import scala.concurrent.Future
+import scala.concurrent.duration._
+import spray.can.Http
 import spray.routing.{ HttpServiceActor, Route, ValidationRejection }
 import org.joda.time.DateTime
 import java.util.UUID
@@ -6,6 +13,9 @@ import java.util.UUID
 class Service(val config: Config, val model: ActorRef) extends HttpServiceActor
     with BlogFormats with BlogsDirectives {
     import context.dispatcher
+    implicit val system = context.system
+
+    IO(Http) ! Http.Bind(self, interface = config.host, port = config.port)
 
     def receive = runRoute {
         log {
@@ -17,6 +27,10 @@ class Service(val config: Config, val model: ActorRef) extends HttpServiceActor
                 pathPrefix(Segment)(handleBlog)
             }
         }
+    }
+
+    def restartTick(route: Route): Route = {
+        route
     }
 
     def log(route: Route): Route = {
