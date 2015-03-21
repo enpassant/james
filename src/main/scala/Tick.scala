@@ -1,4 +1,4 @@
-import akka.actor.{ Actor, ActorLogging, ActorRef, ActorSystem, Props }
+import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Cancellable, Props}
 import akka.io.IO
 import akka.pattern.ask
 import akka.util.Timeout
@@ -11,6 +11,7 @@ import HttpMethods._
 import spray.httpx.RequestBuilding._
 
 case class Tick()
+case class Restart()
 
 class TickActor(val config: Config) extends Actor with ActorLogging  with ServiceFormats {
     implicit val system: ActorSystem = ActorSystem("james")
@@ -21,13 +22,34 @@ class TickActor(val config: Config) extends Actor with ActorLogging  with Servic
     val microService = MicroService(UUID.randomUUID.toString, "blogs",
         config.host, config.port, config.mode)
 
+    def register() = {
+        val response: Future[HttpResponse] =
+            (IO(Http) ? Put(serviceUri + "/" + microService.uuid, microService))
+                .mapTo[HttpResponse]
+        response.map { r => log.info(r.toString) }
+        schedule
+    }
+
+    def schedule() = {
+        val c = context.system.scheduler.scheduleOnce(60 seconds, self, Tick)
+        context.become(process(c))
+    }
+
     def receive = {
         case Tick =>
-            val response: Future[HttpResponse] =
-                (IO(Http) ? Put(serviceUri + "/" + microService.uuid, microService))
-                    .mapTo[HttpResponse]
-            response.map { r => log.info(r.toString) }
+            register
+    }
+
+    def process(cancellable: Cancellable): Receive = {
+        case Tick =>
+            register
+
+        case Restart =>
+            cancellable.cancel
+            schedule
     }
 }
 
+object TickActor {
+}
 // vim: set ts=4 sw=4 et:

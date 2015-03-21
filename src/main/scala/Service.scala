@@ -1,4 +1,4 @@
-import akka.actor.ActorRef
+import akka.actor.{ActorLogging, ActorRef}
 import akka.io.IO
 import akka.pattern.ask
 import akka.util.Timeout
@@ -10,8 +10,9 @@ import spray.routing.{ HttpServiceActor, Route, ValidationRejection }
 import org.joda.time.DateTime
 import java.util.UUID
 
-class Service(val config: Config, val model: ActorRef) extends HttpServiceActor
-    with BlogFormats with BlogsDirectives {
+class Service(val config: Config, val model: ActorRef, tickActor: Option[ActorRef])
+    extends HttpServiceActor with BlogFormats with BlogsDirectives with ActorLogging
+{
     import context.dispatcher
     implicit val system = context.system
 
@@ -19,26 +20,29 @@ class Service(val config: Config, val model: ActorRef) extends HttpServiceActor
 
     def receive = runRoute {
         log {
-            path("") {
-                blogLinks { headComplete }
-            } ~
-            pathPrefix("blogs") {
-                handleBlogs ~
-                pathPrefix(Segment)(handleBlog)
+            restartTick {
+                path("") {
+                    blogLinks { headComplete }
+                } ~
+                pathPrefix("blogs") {
+                    handleBlogs ~
+                    pathPrefix(Segment)(handleBlog)
+                }
             }
         }
     }
 
-    def restartTick(route: Route): Route = {
-        route
+    def restartTick(route: Route): Route = { requestContext =>
+        tickActor map { _ ! Restart }
+        route(requestContext)
     }
 
     def log(route: Route): Route = {
         if (config.mode == Some("dev")) {
-            ctx =>
+            requestContext =>
                 val start = System.currentTimeMillis
-                println(ctx)
-                route(ctx)
+                println(requestContext)
+                route(requestContext)
                 val runningTime = System.currentTimeMillis - start
                 println(s"Running time is ${runningTime} ms")
         } else route

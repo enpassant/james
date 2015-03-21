@@ -25,13 +25,13 @@ object Main extends App {
     // parser.parse returns Option[C]
     parser.parse(args, Config()) match {
         case Some(config) =>
-            if (config.serviceHost != None) {
-                val tickActor = actorSystem.actorOf(Props(new TickActor(config)))
-                tickActor ! Tick
+            val tickActor = config.serviceHost map {
+                _ => actorSystem.actorOf(Props(new TickActor(config)))
             }
+            tickActor.map(_ ! Tick)
 
             val model = actorSystem.actorOf(Props(new Model(config)))
-            val service = actorSystem.actorOf(Props(new Service(config, model)))
+            val service = actorSystem.actorOf(Props(new Service(config, model, tickActor)))
 
         case None =>
     }
