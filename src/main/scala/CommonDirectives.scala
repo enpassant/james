@@ -34,11 +34,11 @@ trait CommonDirectives extends HttpService {
 
     def respondWithLinks(links: Link.Value*) = respondWithHeader(Link(links))
 
-    def getList[T: ClassTag](t: Any)(implicit m: ToResponseMarshaller[Seq[T]]) = get {
+    def getList[T: ClassTag](t: Any)(params: Any*)(implicit m: ToResponseMarshaller[Seq[T]]) = get {
         parameters('offset ? 0, 'limit ? 3) { (offset: Int, limit: Int) =>
             respondWithJson { ctx =>
-                (model ? ListWithOffset(t, offset, limit)) map {
-                    case EntityList(slice: Iterable[T]) => ctx.complete(slice.toSeq)
+                (model ? ListWithOffset(t, params, offset, limit)) map {
+                    case EntityList(slice: Iterable[T @unchecked]) => ctx.complete(slice.toSeq)
                     case _ => ctx.reject()
                 }
             }

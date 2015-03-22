@@ -2,7 +2,7 @@ import java.util.UUID
 import org.joda.time.DateTime
 import akka.actor.Actor
 
-case class ListWithOffset(t: Any, offset: Int, limit: Int)
+case class ListWithOffset(t: Any, params: Seq[Any], offset: Int, limit: Int)
 case class EntityList[T](slice: Iterable[T])
 case class AddEntity[T](blog: T)
 case class DeleteEntity(id: String)
@@ -19,7 +19,7 @@ class Model(val config: Config) extends Actor {
     def process(data: IndexedSeq[Blog]): Receive = {
         case uuid: String =>
             sender ! data.find(_.id == uuid.toString)
-        case ListWithOffset(Blog, offset, limit) =>
+        case ListWithOffset(Blog, params, offset, limit) =>
             sender ! EntityList(data.drop(offset).take(limit))
         case AddEntity(blog: Blog) =>
             context.become(process(blog +: data))

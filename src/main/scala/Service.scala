@@ -50,7 +50,7 @@ class Service(val config: Config, val model: ActorRef, tickActor: Option[ActorRe
 
     def handleBlogs = (pathEnd compose blogLinks) {
         headComplete ~
-        getList[Blog](Blog)
+        getList[Blog](Blog)()
     }
 
     def handleBlog(blogId: String) = pathEnd {
