@@ -45,27 +45,27 @@ trait CommonDirectives extends HttpService {
         }
     }
 
-    def getEntity[T: ClassTag](id: String)(implicit m: ToResponseMarshaller[T]) = get {
+    def getEntity[T: ClassTag](ids: String*)(implicit m: ToResponseMarshaller[T]) = get {
         respondWithJson { ctx =>
-            (model ? id) map {
+            (model ? GetEntity(ids:_*)) map {
                 case Some(entity: T) => ctx.complete(entity)
                 case None => ctx.reject()
             }
         }
     }
 
-    def putEntity[T : ClassTag](id: String, modify: T => T)
+    def putEntity[T : ClassTag](modify: T => T, ids: String*)
         (implicit u: FromRequestUnmarshaller[T], m: ToResponseMarshaller[T]) = put {
         entity(as[T]) { entity => ctx =>
-            (model ? AddEntity(modify(entity))) map {
+            (model ? AddEntity(modify(entity), ids:_*)) map {
                 case entity: T => ctx.complete(entity)
             }
         }
     }
 
-    def deleteEntity[T: ClassTag](id: String)(implicit m: ToResponseMarshaller[T]) = delete {
+    def deleteEntity[T: ClassTag](ids: String*)(implicit m: ToResponseMarshaller[T]) = delete {
         respondWithJson { ctx =>
-            (model ? DeleteEntity(id)) map {
+            (model ? DeleteEntity(ids:_*)) map {
                 case Some(entity: T) => ctx.complete(entity)
                 case None => ctx.reject()
             }

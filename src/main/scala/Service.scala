@@ -57,7 +57,7 @@ class Service(val config: Config, val model: ActorRef, tickActor: Option[ActorRe
         (blogLinks & commentLinks) {
             headComplete ~
             getEntity[Blog](blogId) ~
-            putEntity[Blog](blogId, _.copy(id = blogId)) ~
+            putEntity[Blog](_.copy(id = blogId), blogId) ~
             deleteEntity[Blog](blogId)
         }
     }
