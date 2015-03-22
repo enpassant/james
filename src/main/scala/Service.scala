@@ -60,6 +60,24 @@ class Service(val config: Config, val model: ActorRef, tickActor: Option[ActorRe
             putEntity[Blog](_.copy(id = blogId), blogId) ~
             deleteEntity[Blog](blogId)
         }
+    } ~
+    pathPrefix("comments") {
+        handleComments(blogId) ~
+        pathPrefix(Segment)(handleComment(blogId) _)
+    }
+
+    def handleComments(blogId: String) = (pathEnd compose commentLinks) {
+        headComplete ~
+        getList[Comment](Comment)(blogId)
+    }
+
+    def handleComment(blogId: String)(commentId: String) = pathEnd {
+        (blogLinks & commentLinks) {
+            headComplete ~
+            getEntity[Comment](blogId, commentId) ~
+            putEntity[Comment](_.copy(id = commentId, blogId = blogId), blogId) ~
+            deleteEntity[Comment](blogId, commentId)
+        }
     }
 }
 // vim: set ts=4 sw=4 et:
