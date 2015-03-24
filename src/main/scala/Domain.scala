@@ -12,18 +12,8 @@ case class Blog(id: String = null, accountId: String,
 case class Comment(id: String = null, blogId: String = null, accountId: String,
     date: DateTime = DateTime.now, title: String, note: String)
 
-trait BlogFormats {
+trait BaseFormats {
     private implicit val formats = DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all
-
-    lazy val `application/vnd.blog+json` =
-        MediaTypes.register(MediaType.custom("application/vnd.blog+json"))
-    lazy val `application/vnd.blog-v1+json` =
-        MediaTypes.register(MediaType.custom("application/vnd.blog-v1+json"))
-
-    lazy val `application/vnd.comment+json` =
-        MediaTypes.register(MediaType.custom("application/vnd.comment+json"))
-    lazy val `application/vnd.comment-v1+json` =
-        MediaTypes.register(MediaType.custom("application/vnd.comment-v1+json"))
 
     def unmarshal[T](mediaType: ContentTypeRange*)(implicit m: Manifest[T]): Unmarshaller[T] =
         Unmarshaller[T](mediaType:_*) {
@@ -35,6 +25,13 @@ trait BlogFormats {
         Marshaller.of[T](contentType:_*) { (value, contentType, ctx) =>
             ctx.marshalTo(HttpEntity(contentType, writePretty[T](value)))
         }
+}
+
+trait BlogFormats extends BaseFormats {
+    lazy val `application/vnd.blog+json` =
+        MediaTypes.register(MediaType.custom("application/vnd.blog+json"))
+    lazy val `application/vnd.blog-v1+json` =
+        MediaTypes.register(MediaType.custom("application/vnd.blog-v1+json"))
 
     implicit val BlogUnmarshaller = Unmarshaller.oneOf(
         unmarshal[Blog](`application/vnd.blog-v1+json`),
@@ -48,6 +45,15 @@ trait BlogFormats {
 
     implicit val SeqBlogMarshaller = marshal[Seq[Blog]](
         MediaTypes.`application/json`)
+}
+
+trait CommentFormats extends BaseFormats {
+    private implicit val formats = DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all
+
+    lazy val `application/vnd.comment+json` =
+        MediaTypes.register(MediaType.custom("application/vnd.comment+json"))
+    lazy val `application/vnd.comment-v1+json` =
+        MediaTypes.register(MediaType.custom("application/vnd.comment-v1+json"))
 
     implicit val CommentUnmarshaller = Unmarshaller.oneOf(
         unmarshal[Comment](`application/vnd.comment-v1+json`),

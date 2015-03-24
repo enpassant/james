@@ -11,7 +11,8 @@ import org.joda.time.DateTime
 import java.util.UUID
 
 class Service(val config: Config, val model: ActorRef, tickActor: Option[ActorRef])
-    extends HttpServiceActor with BlogFormats with BlogsDirectives with ActorLogging
+    extends HttpServiceActor with BlogFormats with CommentFormats
+    with BlogsDirectives with ActorLogging
 {
     import context.dispatcher
     implicit val system = context.system
