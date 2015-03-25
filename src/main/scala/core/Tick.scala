@@ -1,3 +1,7 @@
+package core
+
+import component._
+
 import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Cancellable, Props}
 import akka.io.IO
 import akka.pattern.ask

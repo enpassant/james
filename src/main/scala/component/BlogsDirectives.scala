@@ -1,3 +1,7 @@
+package component
+
+import core._
+
 import spray.http.HttpMethods._
 
 trait BlogsDirectives extends CommonDirectives {

@@ -1,3 +1,7 @@
+package component
+
+import core._
+
 import akka.actor.{ActorLogging, ActorRef}
 import akka.io.IO
 import akka.pattern.ask

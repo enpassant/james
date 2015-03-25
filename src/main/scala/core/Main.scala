@@ -1,3 +1,7 @@
+package core
+
+import component._
+
 import akka.actor.{ Actor, ActorRef, ActorSystem, Props }
 import spray.can.Http
 import akka.io.IO

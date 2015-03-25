@@ -1,3 +1,7 @@
+package core
+
+import component._
+
 import akka.actor.ActorRef
 import akka.pattern.ask
 import akka.util.Timeout
