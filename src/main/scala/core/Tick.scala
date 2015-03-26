@@ -53,7 +53,4 @@ class TickActor(val config: Config) extends Actor with ActorLogging  with Servic
             schedule
     }
 }
-
-object TickActor {
-}
 // vim: set ts=4 sw=4 et:
