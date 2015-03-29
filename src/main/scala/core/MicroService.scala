@@ -1,6 +1,4 @@
-package component
-
-import core.BaseFormats
+package core
 
 import java.util.UUID
 import org.json4s.jackson.Serialization.{ read, writePretty }
