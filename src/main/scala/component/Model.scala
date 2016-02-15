@@ -2,9 +2,9 @@ package component
 
 import core._
 
+import akka.actor.{Actor, Props}
 import java.util.UUID
 import org.joda.time.DateTime
-import akka.actor.Actor
 
 case class GetEntity[T](ids: String*)
 case class ListWithOffset(t: Any, params: Seq[Any], offset: Int, limit: Int)
@@ -12,12 +12,12 @@ case class EntityList[T](slice: Iterable[T])
 case class AddEntity[T](blog: T, ids: String*)
 case class DeleteEntity(ids: String*)
 
-class Model(val config: Config) extends Actor {
+class Model(val mode: Option[String]) extends Actor {
     // Dummy data for illustration purposes, in ascending order by date
     val tableBlog = (for {
         x <- 1 to 100
     } yield Blog(UUID.randomUUID.toString, "jim", new DateTime().minusDays(x),
-        s"Title ${x}", s"Description ${x}. Mode: ${config.mode}")).reverse
+        s"Title ${x}", s"Description ${x}. Mode: ${mode}")).reverse
 
     def receive: Receive = process(tableBlog, Map())
 
@@ -57,5 +57,10 @@ class Model(val config: Config) extends Actor {
             context.become(process(tableBlog, tableComment + (blogId -> comments)))
             sender ! entity
     }
+}
+
+object Model {
+    def props(mode: Option[String]) = Props(new Model(mode))
+    def name = "model"
 }
 // vim: set ts=4 sw=4 et:

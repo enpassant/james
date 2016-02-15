@@ -2,28 +2,38 @@ package component
 
 import core._
 
-import akka.actor.{ActorLogging, ActorRef}
-import akka.io.IO
+import akka.actor.{Actor, ActorLogging, ActorRef, ActorSelection, Props}
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.server.{Route, RouteResult}
+import akka.http.scaladsl.server.Directives._
+import akka.stream.ActorMaterializer
+import akka.pattern.ask
 import akka.pattern.ask
 import akka.util.Timeout
 import java.util.UUID
 import scala.concurrent.Future
 import scala.concurrent.duration._
-import spray.can.Http
-import spray.routing.{ HttpServiceActor, Route, ValidationRejection }
 import org.joda.time.DateTime
-import java.util.UUID
 
-class Service(val config: Config, val model: ActorRef, tickActor: Option[ActorRef])
-    extends HttpServiceActor with BlogFormats with CommentFormats
-    with BlogsDirectives with ActorLogging
+class Service(val config: Config, val routerDefined: Boolean)
+    extends Actor
+    with BlogFormats
+    with CommentFormats
+    with BlogsDirectives
+    with ActorLogging
 {
+    val model = context.actorSelection("../" + Model.name)
+    val tickActor: Option[ActorSelection] =
+        if (routerDefined) Some(context.actorSelection("../" + TickActor.name))
+        else None
+
     import context.dispatcher
     implicit val system = context.system
+    implicit val materializer = ActorMaterializer()
 
-    IO(Http) ! Http.Bind(self, interface = config.host, port = config.port)
+    val bindingFuture = Http().bindAndHandle(route, config.host, config.port)
 
-    def receive = runRoute {
+    def route = {
         log {
             restartTick {
                 path("") {
@@ -47,15 +57,18 @@ class Service(val config: Config, val model: ActorRef, tickActor: Option[ActorRe
             requestContext =>
                 val start = System.currentTimeMillis
                 println(requestContext)
-                route(requestContext)
+                val result = route(requestContext)
                 val runningTime = System.currentTimeMillis - start
                 println(s"Running time is ${runningTime} ms")
+                result
         } else route
     }
 
-    def handleBlogs = (pathEnd compose blogLinks) {
-        headComplete ~
-        getList[Blog](Blog)()
+    def handleBlogs = pathEnd {
+        blogLinks {
+            headComplete ~
+            getList[Blog](Blog)()
+        }
     }
 
     def handleBlog(blogId: String) = pathEnd {
@@ -71,9 +84,11 @@ class Service(val config: Config, val model: ActorRef, tickActor: Option[ActorRe
         pathPrefix(Segment)(handleComment(blogId) _)
     }
 
-    def handleComments(blogId: String) = (pathEnd compose commentLinks) {
-        headComplete ~
-        getList[Comment](Comment)(blogId)
+    def handleComments(blogId: String) = pathEnd {
+        commentLinks {
+            headComplete ~
+            getList[Comment](Comment)(blogId)
+        }
     }
 
     def handleComment(blogId: String)(commentId: String) = pathEnd {
@@ -84,5 +99,15 @@ class Service(val config: Config, val model: ActorRef, tickActor: Option[ActorRe
             deleteEntity[Comment](blogId, commentId)
         }
     }
+
+    def receive = {
+        case _ =>
+    }
+}
+
+object Service {
+    def props(config: Config, routerDefined: Boolean) =
+        Props(new Service(config, routerDefined))
+    def name = "service"
 }
 // vim: set ts=4 sw=4 et:

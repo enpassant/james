@@ -2,7 +2,7 @@ package component
 
 import core._
 
-import spray.http.HttpMethods._
+import akka.http.scaladsl.model.HttpMethods._
 
 trait BlogsDirectives extends CommonDirectives {
     def blogLinks = respondWithLinks(jsonLink("/blogs", "blogs", GET),

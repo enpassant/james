@@ -3,8 +3,6 @@ package core
 import component._
 
 import akka.actor.{ Actor, ActorRef, ActorSystem, Props }
-import spray.can.Http
-import akka.io.IO
 
 case class Config(host: String = "localhost", port: Int = 9000,
     router: Option[String] = None, mode: Option[String] = None)
@@ -27,13 +25,7 @@ object Main extends App {
     // parser.parse returns Option[C]
     parser.parse(args, Config()) match {
         case Some(config) =>
-            val tickActor = config.router map {
-                _ => actorSystem.actorOf(Props(new TickActor(config)))
-            }
-            tickActor.map(_ ! Tick)
-
-            val model = actorSystem.actorOf(Props(new Model(config)))
-            val service = actorSystem.actorOf(Props(new Service(config, model, tickActor)))
+            val superVisor = actorSystem.actorOf(Supervisor.props(config), Supervisor.name)
 
         case None =>
     }
