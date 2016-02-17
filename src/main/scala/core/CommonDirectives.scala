@@ -5,8 +5,8 @@ import component._
 import akka.actor.ActorSelection
 import akka.http.scaladsl.marshalling._
 import akka.http.scaladsl.unmarshalling._
-import akka.http.scaladsl.model.{HttpMethod, MediaType, Uri}
-import akka.http.scaladsl.model.headers.{Link, LinkParams, LinkValue}
+import akka.http.scaladsl.model.{HttpHeader, HttpMethod, MediaType, Uri}
+import akka.http.scaladsl.model.headers.{Accept, Link, LinkParams, LinkValue}
 import akka.http.scaladsl.server.Directives._
 import akka.pattern.ask
 import akka.util.Timeout
@@ -30,6 +30,12 @@ trait CommonDirectives {
     }
 
     def respondWithLinks(links: LinkValue*) = respondWithHeader(Link(links : _*))
+
+    def mediaTypeVersion(mediaType: MediaType) = headerValuePF {
+        case Accept(mediaRanges)
+            if mediaRanges.exists(mt => mt.matches(mediaType)) =>
+                mediaRanges.find(mt => mt.matches(mediaType)).flatMap( _.params get "version")
+    }
 
     def getList[T: ClassTag](t: Any)(params: Any*)(implicit m: ToEntityMarshaller[Seq[T]]) = get {
         parameters('offset ? 0, 'limit ? 3) { (offset: Int, limit: Int) =>
