@@ -5,7 +5,7 @@ import component._
 import akka.actor.ActorSelection
 import akka.http.scaladsl.marshalling._
 import akka.http.scaladsl.unmarshalling._
-import akka.http.scaladsl.model.{HttpHeader, HttpMethod, MediaType, Uri}
+import akka.http.scaladsl.model.{HttpHeader, HttpMethod, MediaType, MediaTypes, Uri}
 import akka.http.scaladsl.model.headers.{Accept, Link, LinkParams, LinkValue}
 import akka.http.scaladsl.server.Directives._
 import akka.pattern.ask
@@ -21,11 +21,17 @@ trait CommonDirectives {
 
     def headComplete = (options | head) { complete("") }
 
+    def mtLink(uri: String, rel: String, mt: MediaType, methods: HttpMethod*) = {
+        LinkValue(Uri(uri),
+            LinkParams.rel(rel),
+            LinkParams.`type`(mt.withParams(
+                Map("method" -> methods.map(_.name).mkString(" ")))))
+    }
+
     def jsonLink(uri: String, rel: String, methods: HttpMethod*) = {
         LinkValue(Uri(uri),
             LinkParams.rel(rel),
-            LinkParams.`type`(MediaType.customBinary("application", "json",
-                MediaType.Compressible, Nil,
+            LinkParams.`type`(MediaTypes.`application/json`.withParams(
                 Map("method" -> methods.map(_.name).mkString(" ")))))
     }
 
