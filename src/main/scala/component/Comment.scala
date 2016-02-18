@@ -5,29 +5,30 @@ import core.BaseFormats
 import org.json4s.jackson.Serialization.{ read, writePretty }
 import org.json4s.{ DefaultFormats, Formats }
 import org.joda.time.DateTime
+import akka.http.scaladsl.model._
+import akka.http.scaladsl.marshalling._
+import akka.http.scaladsl.unmarshalling._
 
 case class Comment(id: String = null, blogId: String = null, accountId: String,
     date: DateTime = DateTime.now, title: String, note: String)
 
 trait CommentFormats extends BaseFormats {
-    //private implicit val formats = DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all
+    lazy val `application/vnd.comment+json` =
+        customMediaTypeUTF8("vnd.comment+json")
+    lazy val `application/vnd.comment-v2+json` =
+        customMediaTypeUTF8("vnd.comment-v2+json")
 
-    //lazy val `application/vnd.comment+json` =
-        //MediaTypes.register(MediaType.custom("application/vnd.comment+json"))
-    //lazy val `application/vnd.comment-v1+json` =
-        //MediaTypes.register(MediaType.custom("application/vnd.comment-v1+json"))
+    implicit val CommentUnmarshaller = Unmarshaller.firstOf(
+        unmarshaller[Comment](`application/vnd.comment-v2+json`),
+        unmarshaller[Comment](`application/vnd.comment+json`),
+        unmarshaller[Comment](MediaTypes.`application/json`))
 
-    //implicit val CommentUnmarshaller = Unmarshaller.oneOf(
-        //unmarshal[Comment](`application/vnd.comment-v1+json`),
-        //unmarshal[Comment](`application/vnd.comment+json`),
-        //unmarshal[Comment](MediaTypes.`application/json`))
+    implicit val CommentMarshaller = Marshaller.oneOf(
+        marshaller[Comment](`application/vnd.comment-v2+json`),
+        marshaller[Comment](`application/vnd.comment+json`),
+        marshaller[Comment](MediaTypes.`application/json`))
 
-    //implicit val CommentMarshaller = marshal[Comment](
-        //`application/vnd.comment-v1+json`,
-        //`application/vnd.comment+json`,
-        //MediaTypes.`application/json`)
-
-    //implicit val SeqCommentMarshaller = marshal[Seq[Comment]](
-        //MediaTypes.`application/json`)
+    implicit val SeqCommentMarshaller = marshaller[Seq[Comment]](
+        MediaTypes.`application/json`)
 }
 // vim: set ts=4 sw=4 et:

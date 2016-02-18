@@ -4,6 +4,8 @@ import core._
 
 import akka.actor.{Actor, ActorLogging, ActorRef, ActorSelection, Props}
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.{ContentType, ContentTypes, HttpEntity, HttpResponse, MediaTypes}
+import akka.http.scaladsl.model.headers.Accept
 import akka.http.scaladsl.server.{Route, RouteResult}
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer

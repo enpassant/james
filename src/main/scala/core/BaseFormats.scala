@@ -26,6 +26,13 @@ trait BaseFormats {
   implicit val serialization = jackson.Serialization
   implicit val formats = DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all
 
+  def customMediaTypeUTF8(name: String): MediaType.WithFixedCharset =
+      MediaType.customWithFixedCharset(
+          "application",
+          name,
+          HttpCharsets.`UTF-8`
+      )
+
   implicit def json4sUnmarshallerMediaType[A: Manifest](mediaType: MediaType)
     (serialization: Serialization, formats: Formats): FromEntityUnmarshaller[A] =
     unmarshaller(mediaType)(manifest, serialization, formats)
@@ -54,9 +61,9 @@ trait BaseFormats {
     (serialization: Serialization, formats: Formats, shouldWritePretty: ShouldWritePretty = ShouldWritePretty.False): ToEntityMarshaller[A] =
     marshaller(mediaType)(serialization, formats, shouldWritePretty)
 
-  implicit def json4sMarshallerConverter[A <: AnyRef]
-    (implicit serialization: Serialization, formats: Formats, shouldWritePretty: ShouldWritePretty = ShouldWritePretty.False): ToEntityMarshaller[A] =
-    marshaller(MediaTypes.`application/json`)(serialization, formats, shouldWritePretty)
+  //implicit def json4sMarshallerConverter[A <: AnyRef]
+    //(implicit serialization: Serialization, formats: Formats, shouldWritePretty: ShouldWritePretty = ShouldWritePretty.False): ToEntityMarshaller[A] =
+    //marshaller(MediaTypes.`application/json`)(serialization, formats, shouldWritePretty)
 
   /**
    * `A` => HTTP entity
