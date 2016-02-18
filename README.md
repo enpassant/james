@@ -1,2 +1,2 @@
 # james
-Base REST spray microservice
+Base REST microservice based on akka-http
